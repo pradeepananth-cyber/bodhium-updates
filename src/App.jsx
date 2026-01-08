@@ -3,13 +3,13 @@ import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, AreaChart, Area 
 } from 'recharts';
 import { 
-  TrendingUp, Users, DollarSign, Zap, Briefcase, ArrowRight, LayoutDashboard, ExternalLink, CheckCircle2, Clock, Search 
+  TrendingUp, Users, DollarSign, Zap, Briefcase, ArrowRight, LayoutDashboard, ExternalLink, CheckCircle2, Clock, Search, Target, Info 
 } from 'lucide-react';
 
 // --- HELPER: MOCK URL GENERATOR ---
 const getSearchLink = (name) => `https://www.google.com/search?q=${encodeURIComponent(name)}`;
 
-// --- DATA STRUCTURE (Updated with ALL email details) ---
+// --- DATA STRUCTURE (Updated with 'detail' for Tooltips) ---
 const updatesData = [
   {
     id: 'nov-2025',
@@ -29,14 +29,19 @@ const updatesData = [
     ],
     gtm: {
       accelerator: [
-        { name: 'Ridge', url: getSearchLink('Ridge Wallet'), status: 'Signed (First Participant)' }
+        { name: 'Ridge', url: getSearchLink('Ridge Wallet'), status: 'Signed', detail: 'First Accelerator participant. Using Measurement & Influence tools.' }
       ],
       partnerships: [],
       pipeline: [
-        { name: 'Wharton', url: getSearchLink('Wharton Executive Education'), status: 'Verbal' },
-        { name: 'Stagwell', url: getSearchLink('Stagwell'), status: 'Verbal' }
+        { name: 'Wharton', url: getSearchLink('Wharton Executive Education'), status: 'Verbal', detail: 'Verbal confirmation received.' },
+        { name: 'Stagwell', url: getSearchLink('Stagwell'), status: 'Verbal', detail: 'Verbal confirmation received.' }
       ],
-      notes: 'Launched 12-week Accelerator Program. Focus on Measurement tool + Influence tool.'
+      upcoming: [
+         "Kickstart Accelerator Program (12-week program)",
+         "Monitor Design Partners' progress to ROI",
+         "Detailed end-of-year update coming around Xmas"
+      ],
+      notes: 'Launched 12-week Accelerator Program.'
     },
     people: {
       teamSize: 3,
@@ -63,23 +68,29 @@ const updatesData = [
     ],
     gtm: {
       accelerator: [
-        { name: 'Ridge', url: getSearchLink('Ridge Wallet'), status: 'Signed (Case Study)' },
-        { name: 'Wharton Exec-Ed', url: getSearchLink('Wharton Executive Education'), status: 'Signed' },
-        { name: 'Collectif London', url: getSearchLink('Collectif London'), status: 'Signed' },
-        { name: 'Credibly', url: getSearchLink('Credibly'), status: 'Signed' }
+        { name: 'Ridge', url: getSearchLink('Ridge Wallet'), status: 'Signed (Case Study)', detail: 'Providing "Influence" (content suggestions). Creating a case study.' },
+        { name: 'Wharton Exec-Ed', url: getSearchLink('Wharton Executive Education'), status: 'Signed', detail: 'Converted from verbal. Accelerator partner.' },
+        { name: 'Collectif London', url: getSearchLink('Collectif London'), status: 'Signed', detail: 'New Accelerator partner.' },
+        { name: 'Credibly', url: getSearchLink('Credibly'), status: 'Signed', detail: 'New Accelerator partner.' }
       ],
       partnerships: [
-        { name: 'Stagwell', url: getSearchLink('Stagwell'), type: 'Marketing Agency' },
-        { name: 'FenixCommerce', url: getSearchLink('FenixCommerce'), type: 'Partner' },
-        { name: 'Super Bolt', url: getSearchLink('Super Bolt'), type: 'Agency' }
+        { name: 'Stagwell', url: getSearchLink('Stagwell'), type: 'Marketing Agency', detail: 'Signed partnership. Big marketing agency.' },
+        { name: 'FenixCommerce', url: getSearchLink('FenixCommerce'), type: 'Partner', detail: 'Signed partnership.' },
+        { name: 'Super Bolt', url: getSearchLink('Super Bolt'), type: 'Agency', detail: 'Signed partnership.' }
       ],
       pipeline: [
-        { name: 'Cred', url: getSearchLink('Cred'), status: 'Verbal (Closing Jan)' },
-        { name: 'Harry\'s', url: getSearchLink('Harrys'), status: 'Design Partner conversion' },
-        { name: 'Kitsch', url: getSearchLink('Kitsch'), status: 'Design Partner conversion' },
-        { name: 'Comcast', url: getSearchLink('Comcast'), status: 'Initial Meetings' },
-        { name: 'Estee Lauder', url: getSearchLink('Estee Lauder'), status: 'Initial Meetings' },
-        { name: 'SocioSquares', url: getSearchLink('SocioSquares'), status: 'Legal Vertical Partner' }
+        { name: 'Cred', url: getSearchLink('Cred'), status: 'Verbal', detail: 'Verbal agreement secured. Expected to close this month.' },
+        { name: 'Harry\'s', url: getSearchLink('Harrys'), status: 'Design Partner', detail: 'Continuing conversations to convert from Design Partner to Accelerator.' },
+        { name: 'Kitsch', url: getSearchLink('Kitsch'), status: 'Design Partner', detail: 'Continuing conversations to convert from Design Partner to Accelerator.' },
+        { name: 'Comcast', url: getSearchLink('Comcast'), status: 'Initial Meetings', detail: 'Building on momentum from initial meetings.' },
+        { name: 'Estee Lauder', url: getSearchLink('Estee Lauder'), status: 'Initial Meetings', detail: 'Building on momentum from initial meetings.' },
+        { name: 'SocioSquares', url: getSearchLink('SocioSquares'), status: 'Legal Vertical', detail: 'Exploring new GTM effort for Legal firms with founder Gaurav.' }
+      ],
+      upcoming: [
+         "Convert Design Partners: Continuing conversations with Harry’s and Kitsch.",
+         "Enterprise Momentum: Build on initial meetings with Comcast and Estee Lauder.",
+         "New Vertical (Legal): Explore GTM with Gaurav (SocioSquares) leveraging questions dataset.",
+         "Marketing: Publish a case study from Ridge."
       ],
       notes: 'Reached $17K MRR.'
     },
@@ -261,26 +272,41 @@ const GTMView = ({ data }) => {
   const latest = data[data.length - 1].gtm;
 
   const LinkItem = ({ client }) => (
-    <li className="flex items-center justify-between group">
-      <a 
-        href={client.url} 
-        target="_blank" 
-        rel="noopener noreferrer"
-        className="text-sm font-medium text-slate-700 hover:text-indigo-600 flex items-center transition-colors"
-      >
-        {client.name}
-        <ExternalLink className="w-3 h-3 ml-1 opacity-0 group-hover:opacity-100 transition-opacity" />
-      </a>
-      <span className="text-xs text-slate-400 bg-white px-2 py-1 rounded border border-slate-200">
+    <li className="relative flex items-center justify-between group p-2 -mx-2 hover:bg-indigo-50/50 rounded-lg transition-colors cursor-help">
+      <div className="flex items-center space-x-2">
+         <a 
+            href={client.url} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-sm font-medium text-slate-700 group-hover:text-indigo-600 flex items-center transition-colors relative z-0"
+            onClick={(e) => e.stopPropagation()}
+         >
+            {client.name}
+            <ExternalLink className="w-3 h-3 ml-1 opacity-0 group-hover:opacity-100 transition-opacity" />
+         </a>
+      </div>
+      <span className="text-xs text-slate-400 bg-white px-2 py-1 rounded border border-slate-200 group-hover:border-indigo-200">
         {client.status || client.type}
       </span>
+
+      {/* HOVER TOOLTIP */}
+      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 bg-slate-800 text-white text-xs p-3 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 pointer-events-none">
+        <p className="font-bold text-slate-200 mb-1 flex items-center">
+            <Info className="w-3 h-3 mr-1" />
+            {client.name}
+        </p>
+        <p className="leading-relaxed text-slate-300">{client.detail || "No additional details available."}</p>
+        {/* Triangle Arrow */}
+        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800"></div>
+      </div>
     </li>
   );
 
   return (
     <div className="space-y-6">
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 overflow-visible">
         <SectionHeader title="Current Commercial Snapshot" icon={Briefcase} />
+        <p className="text-xs text-slate-400 mb-4 -mt-4 italic">Hover over clients for details</p>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Signed Column */}
@@ -288,7 +314,7 @@ const GTMView = ({ data }) => {
             <h4 className="text-emerald-800 font-bold mb-4 flex items-center uppercase text-xs tracking-wider">
               <ArrowRight className="w-4 h-4 mr-1"/> Signed Clients
             </h4>
-            <ul className="space-y-3">
+            <ul className="space-y-3 relative">
               {latest.accelerator.map((c, i) => <LinkItem key={i} client={c} />)}
             </ul>
           </div>
@@ -298,7 +324,7 @@ const GTMView = ({ data }) => {
             <h4 className="text-blue-800 font-bold mb-4 flex items-center uppercase text-xs tracking-wider">
               <ArrowRight className="w-4 h-4 mr-1"/> Partnerships
             </h4>
-            <ul className="space-y-3">
+            <ul className="space-y-3 relative">
               {latest.partnerships.map((c, i) => <LinkItem key={i} client={c} />)}
             </ul>
           </div>
@@ -308,16 +334,28 @@ const GTMView = ({ data }) => {
             <h4 className="text-slate-800 font-bold mb-4 flex items-center uppercase text-xs tracking-wider">
               <ArrowRight className="w-4 h-4 mr-1"/> Pipeline / Verbal
             </h4>
-            <ul className="space-y-3">
+            <ul className="space-y-3 relative">
               {latest.pipeline.map((c, i) => <LinkItem key={i} client={c} />)}
             </ul>
           </div>
         </div>
-        
-        <div className="mt-6 pt-4 border-t border-slate-100">
-          <p className="text-sm text-slate-500 italic">
-            <span className="font-bold">Latest Note:</span> {latest.notes}
-          </p>
+      </div>
+
+      {/* NEW SECTION: Strategic Focus */}
+      <div className="bg-gradient-to-r from-indigo-50 to-slate-50 p-6 rounded-xl shadow-sm border border-indigo-100">
+        <h4 className="text-indigo-800 font-bold mb-4 flex items-center text-lg">
+          <Target className="w-5 h-5 mr-2" />
+          Strategic Focus & Next Steps
+        </h4>
+        <div className="grid grid-cols-1 gap-3">
+           {latest.upcoming && latest.upcoming.map((item, i) => (
+             <div key={i} className="flex items-start p-3 bg-white rounded-lg border border-slate-100 shadow-sm">
+                <div className="bg-indigo-100 text-indigo-700 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mr-3 mt-0.5">
+                  {i + 1}
+                </div>
+                <p className="text-slate-700 text-sm font-medium leading-relaxed">{item}</p>
+             </div>
+           ))}
         </div>
       </div>
     </div>
