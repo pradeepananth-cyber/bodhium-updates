@@ -3,38 +3,52 @@ import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, AreaChart, Area 
 } from 'recharts';
 import { 
-  TrendingUp, Users, DollarSign, Zap, Calendar, ArrowRight, LayoutDashboard, Briefcase, FileText 
+  TrendingUp, Users, DollarSign, Zap, Calendar, ArrowRight, LayoutDashboard, Briefcase, FileText, AlertCircle 
 } from 'lucide-react';
 
-// --- DATA STRUCTURE (Add future emails here) ---
-// --- UPDATED DATA STRUCTURE ---
-// Added 'partners' to GTM to track agency relationships like Stagwell
+// --- DATA STRUCTURE ---
 const updatesData = [
   {
     id: 'nov-2025',
     date: 'Nov 2025',
     summary: 'Kickstarting Accelerator Program and building data moat.',
-    financials: { bankBalance: 2980000, burn: 50000, mrr: 0, runwayMonths: 58 },
+    financials: {
+      bankBalance: 2980000, 
+      burn: 50000,          
+      mrr: 0,
+      runwayMonths: 58
+    },
     product: [
       { title: 'Data Moat', value: '100M Questions', status: 'completed' },
-      { title: 'Prediction Model', value: '90% Confidence', status: 'completed' }
+      { title: 'Prediction Model', value: '90% Confidence', status: 'completed' },
+      { title: 'Influence Tool', value: 'Beta Launch', status: 'in-progress' }
     ],
     gtm: {
       signed: ['Ridge'],
       verbal: ['Wharton', 'Stagwell'],
       pipeline: [],
-      partners: [] // New field to track agency partners
+      partners: [] 
     },
-    people: { teamSize: 3, keyHires: [], notes: 'Founding team of 3.' }
+    people: {
+      teamSize: 3,
+      keyHires: [],
+      notes: 'Founding team of 3. Seeking advisors.'
+    }
   },
   {
     id: 'jan-2026',
     date: 'Jan 2026',
     summary: 'Explosive growth in data (1.5B) and major GTM hire.',
-    financials: { bankBalance: 2860000, burn: 61516, mrr: 17000, runwayMonths: 46 },
+    financials: {
+      bankBalance: 2860000,
+      burn: 61516,
+      mrr: 17000,
+      runwayMonths: 46
+    },
     product: [
       { title: 'Data Moat', value: '1.5B Questions', status: 'completed' },
-      { title: 'Simulator', value: 'Core IP Active', status: 'completed' }
+      { title: 'Simulator', value: 'Core IP Active', status: 'completed' },
+      { title: 'Legal Vertical', value: 'Exploratory', status: 'new' }
     ],
     gtm: {
       signed: ['Ridge', 'Wharton', 'Collectif', 'Credibly'],
@@ -42,13 +56,39 @@ const updatesData = [
       pipeline: ['Harry\'s', 'Kitsch', 'Comcast', 'Estee Lauder'],
       partners: ['Stagwell', 'FenixCommerce', 'Super Bolt']
     },
-    people: { 
-      teamSize: 4, 
-      keyHires: ['Phalgun'], 
-      notes: 'Gautham (Intern) to Full-time.' 
+    people: {
+      teamSize: 4,
+      keyHires: ['Phalgun (GTM Lead, ex-upGrad)'],
+      notes: 'Gautham (Intern) to Full-time. Vincent/Andy joining July.'
     }
   }
 ];
+
+// --- LOGIC HELPERS ---
+
+// Calculates Churn (Dropped) and New logos by comparing two update objects
+const getGtmChanges = (current, previous) => {
+  if (!previous) return { newClients: [], droppedClients: [] };
+
+  // Helper to flatten all distinct names in a GTM object
+  const getAllNames = (update) => [
+    ...(update.gtm.signed || []),
+    ...(update.gtm.verbal || []),
+    ...(update.gtm.pipeline || []),
+    ...(update.gtm.partners || [])
+  ];
+
+  const currentNames = new Set(getAllNames(current));
+  const previousNames = new Set(getAllNames(previous));
+
+  // Identify NEW clients (In Current, not in Previous)
+  const newClients = [...currentNames].filter(x => !previousNames.has(x));
+
+  // Identify DROPPED clients (In Previous, NOT in Current)
+  const droppedClients = [...previousNames].filter(x => !currentNames.has(x));
+
+  return { newClients, droppedClients };
+};
 
 // --- COMPONENTS ---
 
@@ -187,31 +227,6 @@ const ProductView = ({ data }) => (
   </div>
 );
 
-// --- HELPER FUNCTION FOR LOGIC ---
-const getGtmChanges = (current, previous) => {
-  if (!previous) return { newClients: [], droppedClients: [] };
-
-  // 1. Gather all names from Current and Previous states
-  const getAllNames = (update) => [
-    ...update.gtm.signed,
-    ...update.gtm.verbal,
-    ...update.gtm.pipeline,
-    ...update.gtm.partners
-  ];
-
-  const currentNames = new Set(getAllNames(current));
-  const previousNames = new Set(getAllNames(previous));
-
-  // 2. Identify NEW clients (In Current, not in Previous)
-  const newClients = [...currentNames].filter(x => !previousNames.has(x));
-
-  // 3. Identify DROPPED clients (In Previous, NOT in Current)
-  const droppedClients = [...previousNames].filter(x => !currentNames.has(x));
-
-  return { newClients, droppedClients };
-};
-
-// --- UPDATED GTM VIEW COMPONENT ---
 const GTMView = ({ data }) => {
   // Get the latest two updates for comparison
   const currentUpdate = data[data.length - 1];
@@ -223,7 +238,7 @@ const GTMView = ({ data }) => {
   // Helper to render list items with badges
   const renderList = (items) => (
     <ul className="space-y-2">
-      {items.map(c => {
+      {items && items.map(c => {
         const isNew = newClients.includes(c);
         return (
           <li key={c} className="flex items-center justify-between text-sm font-medium text-slate-700 bg-white px-3 py-2 rounded shadow-sm border border-slate-100">
@@ -248,16 +263,17 @@ const GTMView = ({ data }) => {
         {droppedClients.length > 0 && (
           <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-lg">
             <h4 className="text-red-800 font-bold mb-2 flex items-center">
-              <span className="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
+              <AlertCircle className="w-5 h-5 mr-2 text-red-600" />
               Dropped / No Longer Mentioned
             </h4>
             <div className="flex flex-wrap gap-2">
               {droppedClients.map(c => (
-                <span key={c} className="text-sm font-medium text-red-700 bg-white px-2 py-1 rounded shadow-sm border border-red-100 strike-through">
+                <span key={c} className="text-sm font-medium text-red-700 bg-white px-2 py-1 rounded shadow-sm border border-red-100 line-through opacity-75">
                   {c}
                 </span>
               ))}
             </div>
+            <p className="text-xs text-red-500 mt-2">These names appeared in the previous update but are missing from the current lists.</p>
           </div>
         )}
 
@@ -329,7 +345,7 @@ const PeopleView = ({ data }) => (
 // --- MAIN APP ---
 
 const Dashboard = () => {
-  const [activeTab, setActiveTab] = useState('timeline');
+  const [activeTab, setActiveTab] = useState('gtm'); // Default to GTM to see new feature
 
   const tabs = [
     { id: 'timeline', label: 'Timeline', icon: LayoutDashboard },
