@@ -400,4 +400,60 @@ const Dashboard = () => {
     switch(activeTab) {
       case 'timeline': return <TimelineView data={updatesData} />;
       case 'financials': return <FinancialsView data={updatesData} />;
-      case 'product': return <ProductView data
+      case 'product': return <ProductView data={updatesData} />;
+      case 'gtm': return <GTMView data={updatesData} />;
+      case 'people': return <PeopleView data={updatesData} />;
+      default: return <TimelineView data={updatesData} />;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans p-6 md:p-12">
+      <div className="max-w-6xl mx-auto">
+        
+        {/* Header */}
+        <div className="mb-10 flex justify-between items-end">
+          <div>
+            <h1 className="text-3xl font-extrabold text-slate-900">Bodhium Labs</h1>
+            <p className="text-slate-500 mt-2">Investor Update Portal • FY 2026</p>
+          </div>
+          <div className="text-right">
+             <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+               Active Portfolio
+             </span>
+          </div>
+        </div>
+
+        {/* Navigation */}
+        <div className="flex flex-wrap gap-4 border-b border-slate-200 pb-1 mb-8">
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center space-x-2 px-4 py-2 text-sm font-medium transition-colors relative top-[1px] ${
+                  isActive 
+                    ? 'text-indigo-600 border-b-2 border-indigo-600' 
+                    : 'text-slate-500 hover:text-slate-700'
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Content Area */}
+        <div className="animate-in fade-in duration-300">
+          {renderContent()}
+        </div>
+
+      </div>
+    </div>
+  );
+};
+
+export default Dashboard;
